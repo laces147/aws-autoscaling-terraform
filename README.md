@@ -23,8 +23,9 @@ The objectives of this project were to:
 
 The infrastructure uses a multi-AZ VPC design with separate public and private subnets.
 
-### Traffic Flow
+### Application Traffic Flow
 
+```text
 Internet
    |
    v
@@ -41,14 +42,24 @@ Auto Scaling Group
    v                   v
 EC2 Instance       EC2 Instance
 Private Subnet A   Private Subnet B
-   |                   |
-   +---------+---------+
-             |
-             v
-        NAT Gateway
-             |
-             v
-      Internet Gateway
+```
+
+### Private Instance Outbound Access
+
+```text
+EC2 Instance
+Private Subnet
+     |
+     v
+NAT Gateway
+Public Subnet
+     |
+     v
+Internet Gateway
+     |
+     v
+Internet
+```
 
 ### Architecture Components
 
@@ -97,6 +108,16 @@ Create a local `terraform.tfvars` file:
 
 ```hcl
 admin_cidr = "YOUR_PUBLIC_IP/32"
+```
+For example:
+
+```hcl
+admin_cidr = "203.0.113.10/32"
+```
+
+The `terraform.tfvars` file is excluded from Git through `.gitignore` and should not be committed to the repository.
+
+Using `/32` restricts the SSH rule to a single IPv4 address rather than allowing SSH access from the entire internet.
 
 ## Deployment
 
