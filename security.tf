@@ -35,7 +35,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_security_group" "ec2" {
   name        = "autoscaling-ec2-sg"
-  description = "Allow HTTP from ALB and SSH from administrator"
+  description = "Allow HTTP traffic from the Application Load Balancer"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -44,14 +44,6 @@ resource "aws_security_group" "ec2" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
-  }
-
-  ingress {
-    description = "SSH from administrator IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.admin_cidr]
   }
 
   egress {

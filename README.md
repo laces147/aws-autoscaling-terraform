@@ -102,22 +102,11 @@ Before deploying this project, ensure the following are installed and configured
 
 ## Configuration
 
-The administrator IP address used for SSH access is provided through the `admin_cidr` Terraform variable rather than being hard-coded in the Terraform configuration.
+The EC2 instances are deployed in private subnets and do not require direct inbound SSH access.
 
-Create a local `terraform.tfvars` file:
+Administrative access is designed to use AWS Systems Manager (SSM). The EC2 instances receive the required SSM permissions through an IAM role and instance profile using the `AmazonSSMManagedInstanceCore` managed policy.
 
-```hcl
-admin_cidr = "YOUR_PUBLIC_IP/32"
-```
-For example:
-
-```hcl
-admin_cidr = "203.0.113.10/32"
-```
-
-The `terraform.tfvars` file is excluded from Git through `.gitignore` and should not be committed to the repository.
-
-Using `/32` restricts the SSH rule to a single IPv4 address rather than allowing SSH access from the entire internet.
+The EC2 security group allows application traffic on port 80 only from the Application Load Balancer security group. No inbound SSH rule is required.
 
 ## Deployment
 
@@ -229,7 +218,7 @@ The project applies several security controls to reduce unnecessary exposure of 
 - **Private EC2 instances** — Application instances are deployed in private subnets rather than being directly exposed to the internet.
 - **Load Balancer security group** — Allows inbound HTTP traffic on port 80 from the internet.
 - **EC2 security group** — Allows application traffic on port 80 only from the Application Load Balancer security group.
-- **Restricted SSH access** — SSH access on port 22 is limited to the administrator CIDR supplied through the `admin_cidr` Terraform variable.
+- **No inbound SSH access** — The EC2 instances do not expose port 22. Administrative access is designed to use AWS Systems Manager instead of direct SSH.
 - **IAM role for EC2** — AWS permissions are provided through an IAM role and instance profile instead of embedding AWS access keys in the EC2 configuration.
 - **AWS Systems Manager access** — The EC2 IAM role includes the `AmazonSSMManagedInstanceCore` policy, supporting Systems Manager management of the instances.
 - **Sensitive local configuration** — Terraform variable files, state files, private keys, and other local artifacts are excluded from Git through `.gitignore`.
@@ -281,7 +270,6 @@ Key lessons included:
 This project was designed as a hands-on learning environment. Potential improvements for a more production-oriented implementation include:
 
 - Add HTTPS using an SSL/TLS certificate and an HTTPS listener on the Application Load Balancer.
-- Use AWS Systems Manager as the primary administrative access method and remove the need for inbound SSH access.
 - Use separate NAT Gateways across Availability Zones for greater resilience.
 - Store Terraform state remotely with appropriate state locking rather than relying only on local state.
 - Add additional monitoring and alerting for infrastructure health and scaling events.
